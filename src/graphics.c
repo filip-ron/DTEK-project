@@ -17,7 +17,7 @@ static volatile uint8_t *draw_buffer;
 static volatile uint32_t *vga_control = (volatile uint32_t *) VGA_DMA_ADDRESS;
 
 void graphics_draw_pixel(int x, int y, uint8_t color) {
-    if ( x < 0 || x >= VGA_WIDTH || y < 0 || y >= VGA_HEIGHT) {
+    if (x < 0 || x >= VGA_WIDTH || y < 0 || y >= VGA_HEIGHT) {
         return;
     }
 
