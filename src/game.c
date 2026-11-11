@@ -1,0 +1,1 @@
+//Add check so that spike_count can't exceed MAX_SPIKES, and cannot be lower than 0
