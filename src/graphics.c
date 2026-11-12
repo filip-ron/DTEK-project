@@ -13,8 +13,15 @@
 #define VGA_STATUS_REG 3
 
 
+#ifdef GRAPHICS_TEST
+static uint8_t test_buffer[VGA_WIDTH * VGA_HEIGHT];
+static volatile uint8_t *draw_buffer = test_buffer;
+#else 
 static volatile uint8_t *draw_buffer;
 static volatile uint32_t *vga_control = (volatile uint32_t *) VGA_DMA_ADDRESS;
+#endif
+
+
 
 void graphics_draw_pixel(int x, int y, uint8_t color) {
     if (x < 0 || x >= VGA_WIDTH || y < 0 || y >= VGA_HEIGHT) {
@@ -24,6 +31,16 @@ void graphics_draw_pixel(int x, int y, uint8_t color) {
     draw_buffer[y * VGA_WIDTH + x] = color;
 }
 
+#ifdef GRAPHICS_TEST
+uint8_t graphics_get_pixel(int x, int y) {
+    if (x < 0 || x >= VGA_WIDTH || y < 0 || y >= VGA_HEIGHT) {
+        return 0;
+    }
+
+    return draw_buffer[y * VGA_WIDTH + x];
+}
+#endif
+
 void graphics_clear(uint8_t color) {
     for(int i = 0; i < VGA_WIDTH * VGA_HEIGHT; i++) {
         draw_buffer[i] = color;
@@ -31,10 +48,53 @@ void graphics_clear(uint8_t color) {
 }
 
 void graphics_draw_rect(int x, int y, int width, int height, uint8_t color) {
-    for(int dy = 0; dy < height; dy++) {
-        for(int dx = 0; dx < width; dx++) {
-            graphics_draw_pixel(x + dx,y + dy,color);
+    if(width <= 0 || height <= 0) { 
+        return;
+    }
+
+    //Calculate rectangle boundaries
+    int x_start = x;
+    int y_start = y;
+    int x_end = x + width;
+    int y_end = y + height;
+
+    //Clip to screen boundaries
+    if(x_start < 0) x_start = 0;
+    if(y_start < 0) y_start = 0;
+    if(x_end > VGA_WIDTH) x_end = VGA_WIDTH;
+    if(y_end > VGA_HEIGHT) y_end = VGA_HEIGHT;
+
+    //Rectangle is completely outside the screen
+    if((x_start >= x_end) ||(y_start >= y_end)) {
+        return;
+    }
+
+    //Draw directly into framebuffer
+    for( int py = y_start; py < y_end; py++) {
+        int row_offset = py * VGA_WIDTH;
+
+        for(int px = x_start; px < x_end; px++) {
+            draw_buffer[row_offset + px] = color;
         }
+    }
+}
+
+static void graphics_draw_horizontal_line(int x, int y, int width, uint8_t color) {
+    if( width <= 0 || y < 0 || y >= VGA_HEIGHT) {
+        return;
+    }
+
+    int x_start = x;
+    int x_end = x + width;
+
+    if(x_start < 0) x_start = 0;
+    if(x_end > VGA_WIDTH) x_end = VGA_WIDTH;
+    if(x_start >= x_end) return;
+
+    int row_offset = y * VGA_WIDTH;
+
+    for(int px = x_start; px < x_end; px++) {
+        draw_buffer[row_offset + px] = color;
     }
 }
 
@@ -56,31 +116,34 @@ void graphics_draw_triangle(int x, int y, int width, int height, uint8_t color, 
         int rowWidth = 1 +  (((width - 1) * distance_from_tip) / (height - 1));
         int offsetX = (width - rowWidth) / 2;
 
-        graphics_draw_rect(x + offsetX, y + dy, rowWidth, 1, color);
+       graphics_draw_horizontal_line(x + offsetX, y + dy, rowWidth, color);
     }
 }
 
 void graphics_init(void) {
+#ifdef GRAPHICS_TEST
+    draw_buffer = test_buffer;
+#else
+    
     vga_control[VGA_BACKBUFFER_REG] = FRAME_A_ADDRESS;
-
     vga_control[VGA_BUFFER_REG] = 0;
 
     while(vga_control[VGA_STATUS_REG] & 1) {}
 
     vga_control[VGA_BACKBUFFER_REG] = FRAME_B_ADDRESS;
-
     draw_buffer = (volatile uint8_t *) FRAME_B_ADDRESS;
-
+#endif
 
 }
 
 void graphics_swap_buffers(void) {
-    
+#ifndef GRAPHICS_TEST    
     vga_control[VGA_BUFFER_REG] = 0;
 
     while(vga_control[VGA_STATUS_REG] & 1) {}
 
     draw_buffer = (volatile uint8_t *) vga_control[VGA_BACKBUFFER_REG];
+#endif
 }
 
 void graphics_render(const GameState *state) {

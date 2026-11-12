@@ -13,4 +13,8 @@ void graphics_draw_triangle(int x, int y, int width, int height, uint8_t color, 
 void graphics_swap_buffers(void);
 void graphics_render(const GameState *state);
 
+#ifdef GRAPHICS_TEST
+uint8_t graphics_get_pixel(int x, int y);
+#endif
+
 #endif

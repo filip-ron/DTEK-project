@@ -71,3 +71,7 @@ dkms.conf
 *~
 
 !softfloat.a
+
+# Local graphics test
+/test_graphics
+/test_graphics.exe
