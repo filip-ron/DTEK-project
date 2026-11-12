@@ -148,23 +148,42 @@ void graphics_swap_buffers(void) {
 
 void graphics_render(const GameState *state) {
     
-    graphics_clear(BACKGROUND_COLOR); //initialize with black screen
+    graphics_clear(COLOR_BACKGROUND); //initialize with black screen
 
     graphics_draw_rect(
         0, 
         GROUND_Y, 
         VGA_WIDTH, 
         GROUND_HEIGHT, 
-        GROUND_COLOR
-    ); //Start creating ground in green color
+        COLOR_GROUND
+    ); //Start creating ground 
+
+    graphics_draw_rect(
+        0,
+        GROUND_Y,
+        VGA_WIDTH,
+        2,
+        COLOR_GROUND_LINE
+    );
+
+
 
     graphics_draw_rect(
         state->player.x, 
         state->player.y, 
         state->player.width, 
         state->player.height, 
-        PLAYER_COLOR
-    ); //Draw the player
+        COLOR_PLAYER_BORDER
+    ); //Draw the player 
+
+    graphics_draw_rect(
+        state->player.x + PLAYER_BORDER_WIDTH, 
+        state->player.y + PLAYER_BORDER_WIDTH, 
+        state->player.width - (2 * PLAYER_BORDER_WIDTH), 
+        state->player.height - (2 * PLAYER_BORDER_WIDTH), 
+        COLOR_PLAYER
+    ); 
+
 
     for(int i = 0; i < state->spike_count; i++) {
         int screen_x = state->spikes[i].x - state->camera_x;  //Finds the relative position of each spike from its world position minus where the camera is
@@ -178,9 +197,18 @@ void graphics_render(const GameState *state) {
             state->spikes[i].y, 
             state->spikes[i].width, 
             state->spikes[i].height, 
-            SPIKE_COLOR, 
+            COLOR_SPIKE_BORDER, 
             state->spikes[i].upside_down
         ); //Draw the spikes
+
+        graphics_draw_triangle(
+            screen_x + SPIKE_BORDER_WIDTH,
+            state->spikes[i].y + SPIKE_BORDER_WIDTH,
+            state->spikes[i].width - (2 * SPIKE_BORDER_WIDTH),
+            state->spikes[i].height - (2 * SPIKE_BORDER_WIDTH),
+            COLOR_SPIKE,
+            state->spikes[i].upside_down
+        );
     }
 
     for(int i = 0; i < state->block_count; i++) {
@@ -195,7 +223,7 @@ void graphics_render(const GameState *state) {
             state->blocks[i].y,
             state->blocks[i].width,
             state->blocks[i].height,
-            BLOCK_COLOR
+            COLOR_BLOCK
         );
     }
 }
