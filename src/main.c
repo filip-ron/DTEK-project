@@ -21,33 +21,45 @@ int main(void) {
     state.player.height = 20;
 
     // Spike
-    state.spike_count = 1;
-    state.spikes[0].x = 180;
-    state.spikes[0].y = 175;
-    state.spikes[0].width = 30;
-    state.spikes[0].height = 25;
-    state.spikes[0].upside_down = false;
+    state.spike_count = 5;
+    
+    state.spikes[0] = (Spike){180, 175, 25, 25, false};
+    state.spikes[1] = (Spike){300, 175, 25, 25, false};
+    state.spikes[2] = (Spike){325, 175, 25, 25, false};
+    state.spikes[3] = (Spike){550, 175, 25, 25, false};
+    state.spikes[4] = (Spike){750, 175, 25, 25, false};
 
     // Block
-    state.block_count = 1;
-    state.blocks[0].x = 240;
-    state.blocks[0].y = 170;
-    state.blocks[0].width = 30;
-    state.blocks[0].height = 30;
+    state.block_count = 3;
+    
+    state.blocks[0] = (Block){420, 170, 30, 30};
+    state.blocks[1] = (Block){620, 150, 50, 50};
+    state.blocks[2] = (Block){850, 170, 30, 30};
 
     state.camera_x = 0;
 
     // Initialize VGA graphics
     graphics_init();
 
-    // Render the test scene
-    graphics_render(&state);
+    while (1) {
+		graphics_render(&state);
+        graphics_swap_buffers();
 
-    // Display the rendered frame
-    graphics_swap_buffers();
+        // Move camera one pixel forward
+        state.camera_x++;
 
-    // Keep the program running
-    while (1) {}
+        // Restart the simulation
+        if(state.camera_x >= 900) {
+            state.camera_x = 0;
+        }
+
+        // Temporary delay to control scrolling speed
+        for(volatile int i = 0; i < 25000; i++) {
+        }
+		
+
+
+}
 
     return 0;
 }
